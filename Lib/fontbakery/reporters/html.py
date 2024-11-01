@@ -4,7 +4,13 @@ from collections import defaultdict
 import os
 import cmarkgfm
 from cmarkgfm.cmark import Options as cmarkgfmOptions
-from jinja2 import ChoiceLoader, Environment, PackageLoader, Template, select_autoescape
+from jinja2 import (
+    ChoiceLoader,
+    Environment,
+    PackageLoader,
+    Template,
+    select_autoescape,
+)
 from markupsafe import Markup
 
 from fontbakery.reporters.serialize import SerializeReporter
@@ -49,13 +55,16 @@ class HTMLReporter(SerializeReporter):
     format = "html"
 
     def template_engine(self) -> Template:
-        loaders = [PackageLoader("fontbakery.reporters", f"templates/{self.format}")]
+        loaders = [
+            PackageLoader("fontbakery.reporters", f"templates/{self.format}")
+        ]
         try:
             profile = self.runner.profile.name
             loaders.insert(
                 0,
                 PackageLoader(
-                    "fontbakery.reporters", f"templates/{profile}/{self.format}"
+                    "fontbakery.reporters",
+                    f"templates/{profile}/{self.format}",
                 ),
             )
         except ValueError:
@@ -67,7 +76,7 @@ class HTMLReporter(SerializeReporter):
         def omitted(result):
             # This is horribly polymorphic, sorry
             if isinstance(result, list):  # I am cluster of checks
-                return omitted(result[0])
+                return all(omitted(check) for check in result)
             if "status" in result:  # I am a single subresult
                 return self.omit_loglevel(result["status"])
             if "checks" in result:  # I am section
